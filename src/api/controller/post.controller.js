@@ -1,34 +1,33 @@
 /**
  * //create a new post
- * Get all post
- * Get all timeline post
- * get a single post
- * update a post
- * delete a post
- * like a post
- * comment on a post
+ * Get all post ✔
+ * Get all timeline post - backlog
+ * get a single post  ✔
+ * update a post  ✔
+ * delete a post  ✔
+ * like a post  ✔
+ * comment on a post  
  * like a comment
- * reshare a post
- * upload images
- * upload videos
- * when you create a post without sharing, it is in draft state and does not appear on the user's timeline
- * when you create a post and share, it is in a published state and appears on the users timeline.
+ * reshare a post  ✔
+ * upload images -backlog
+ * upload videos -backlog
+ * when you create a post, it is initially in a deafult draft state and does not appear on the user's timeline
+ * when you create a post and update its state to 'shared', it appears on the user's and his followers timeline.
  */
-const mongoose = require('mongoose');
+
 const User = require('../model/User');
 const Post = require('./../model/Post');
 const LikePost = require('./../model/likePost');
 
 //moment - date and time formatter package
 const moment = require('moment');
-const { valid } = require('joi');
 
-//create post
+//create a post
 exports.createNewPost = async (req, res, next) => {
   try {
     const newPost = req.body;
 
-    //create a new instance of the Post model
+    //create an instance of the Post model object
     const post = new Post({
       author: req.user._id,
       timestamps: moment().toDate(),
@@ -36,15 +35,13 @@ exports.createNewPost = async (req, res, next) => {
     });
 
     //save created post to DB
-    post.save((err, savedpost) => {
+    post.save((err) => {
       if (err) return next(err.message);
     });
 
-    //add new post to user's 'posts' array property in user model
+    //add new post to user's 'posts' array in user model
     const postByAuthor = await User.findById(req.user._id);
-    console.log(postByAuthor);
     postByAuthor.posts.push(post._id);
-    // await postByAuthor.save()
     await postByAuthor.updateOne({ posts: postByAuthor.posts });
 
     //send back response after all implementation
@@ -58,10 +55,12 @@ exports.createNewPost = async (req, res, next) => {
 };
 
 //get all post
-exports.getAllPost = async (req, res, next) => {
+exports.getAllSharedPost = async (req, res, next) => {
   try {
-    const posts = await Post.find().populate('author', 'firstname lastname');
+    const posts = await Post.find({state: 'shared'}).populate('author', 'firstname lastname');
+
     if (!posts) return res.status(200).json('No post has been shared yet');
+
     res.status(200).json({
       status: 'success',
       numberOfPosts: posts.length,
@@ -71,6 +70,29 @@ exports.getAllPost = async (req, res, next) => {
     return next(err);
   }
 };
+
+//get all post in draft state
+exports.getAllDraftPost = async(req, res, next) => {
+  try{
+    const posts = await Post.find({state: 'draft'})
+
+    if(!posts) return res.status(404).json({
+      status: 'success',
+      message: 'No post found'
+    })
+  
+    res.status(200).json({
+      status: 'success',
+      data: {
+        posts
+      }
+    })
+  }catch(err){
+    if(err) res.status(500)
+    return next(err.message)
+  }
+ 
+}
 
 //get a single post
 exports.getPost = async (req, res, next) => {
@@ -104,8 +126,8 @@ exports.likePost = async (req, res, next) => {
       String(el._post) === String(req.params.postId)
   );
 
-  //if the alreadylikedpost array is not empty
-  //the post has already been liked
+  //if the alreadylikedpost array is not empty,
+  //the post has already been liked,
   //then unlike post
   if (alreadyLikedPost.length !== 0) {
     alreadyLikedPost = alreadyLikedPost.splice(0, 1);
@@ -145,6 +167,7 @@ exports.likePost = async (req, res, next) => {
   });
 };
 
+
 //edit post
 exports.editPost = async (req, res, next) => {
   try {
@@ -180,16 +203,10 @@ exports.updatePost = async (req, res, next) => {
 
 //delete post
 exports.deletePost = async (req, res, next) => {
-  const postToDelete = await Post.findByIdAndRemove(req.params.id);
+await Post.findByIdAndRemove(req.params.id);
   res.status(204).json({
     status: 'success',
     message: 'post deleted sucessfully',
   });
 };
 
-//share a post
-exports.shareAPost = async (req, res, next) => {
-  //1). only a post with state shared can be shared
-  //2). get the post by id
-  const postToShare = await Post.findById(req.params.id);
-};
