@@ -51,11 +51,14 @@ const userSchema = new mongoose.Schema(
     passwordResetExpire: Date,
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    followerCount: Number,
+    followingCount: Number,
     joinedOn: {
       type: Date,
       default: Date.now(),
       immutable: true,
     },
+    posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}]
   },
   { timestamps: true }
 );
@@ -94,6 +97,7 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
+// module.exports = mongoose.model('User', userSchema)
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
