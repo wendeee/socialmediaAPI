@@ -1,7 +1,6 @@
 const Comment = require('./../model/Comment');
 const LikeComment = require('./../model/likeComment');
 const Post = require('./../model/Post');
-const User = require('./../model/User');
 
 exports.createComment = async (req, res, next) => {
   const newComment = await Comment.create({
@@ -9,6 +8,10 @@ exports.createComment = async (req, res, next) => {
     _user: req.user._id,
     ...req.body,
   });
+
+  const post = await Post.findById(req.params.postId);
+  post.comments.push(req.user._id);
+  await post.save();
 
   res.status(201).json({
     status: 'success',
@@ -32,7 +35,6 @@ exports.getComments = async (req, res, next) => {
 
 exports.likeComment = async (req, res, next) => {
   const commentToLike = await Comment.findOne({ _id: req.params.commentId });
-  // console.log(commentToLike)
   if (!commentToLike)
     return res.status(404).json({
       message: 'Comment with ID not found.',
@@ -70,15 +72,15 @@ exports.likeComment = async (req, res, next) => {
     });
 
     commentToLike.likes === 0 ? commentToLike.likes++ : commentToLike.likes++;
-    commentToLike.save()
-    console.log(commentToLike)
+    commentToLike.save();
+    console.log(commentToLike);
   }
 
   res.status(200).json({
     status: 'success',
     message: 'You liked this comment',
     data: {
-        comment: commentToLike
-    }
+      comment: commentToLike,
+    },
   });
 };
