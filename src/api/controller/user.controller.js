@@ -11,6 +11,7 @@
 
 const User = require('../model/User');
 const { validationResult } = require('express-validator');
+
 //filter body function
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -117,12 +118,12 @@ exports.unfollow = async (req, res, next) => {
 
 //get followers
 exports.getFollowers = async (req, res, next) => {
-  const currentUser = await User.findById(req.user._id).populate('followers')
+  const currentUser = await User.findOne({_id: req.user._id}).populate('followers', 'firstname lastname')
   let followers = currentUser.followers
   if(followers.length === 0){
     followers = currentUser.followers
   }else{
-    followers = currentUser.followers[0].username
+    followers = currentUser.followers
   }
  res.json({
   followers: followers
@@ -132,15 +133,19 @@ exports.getFollowers = async (req, res, next) => {
 
 //get followings
 exports.getFollowings = async (req, res, next) => {
-  const currentUser = await User.findById(req.user._id).populate('followings', 'username')
+  const currentUser = await User.findOne({_id: req.user._id}).populate('followings', '-_id firstname lastname')
   let followings = currentUser.followings
-  // if(followings.length === 0){
-  //   followings = currentUser.followings
-  // }else{
-  //   followings = currentUser.followings
-  // }
+  
   res.json({
+    numOfFollowings: followings.length,
     followings: followings
   })
   
 };
+
+//lookup followers bio
+exports.getUser = async(req, res, next)=> {
+  
+}
+
+
