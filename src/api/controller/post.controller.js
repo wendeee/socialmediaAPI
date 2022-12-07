@@ -1,18 +1,18 @@
 /**
- * //create a new post
+ * create a new post ✔
  * Get all post ✔
  * Get all timeline post - backlog
  * get a single post  ✔
  * update a post  ✔
  * delete a post  ✔
- * like a post  ✔
- * comment on a post  
+ * like a shared post  ✔
+ * comment on a shared post  
  * like a comment
  * reshare a post  ✔
  * upload images -backlog
  * upload videos -backlog
- * when you create a post, it is initially in a deafult draft state and does not appear on the user's timeline
- * when you create a post and update its state to 'shared', it appears on the user's and his followers timeline.
+ * when you create a post, it is initially in a default draft state and does not appear on the user's timeline
+ * when you create a post and update its state to 'shared', it appears on the user and his followers timeline.
  */
 
 const User = require('../model/User');
@@ -116,7 +116,7 @@ exports.likePost = async (req, res, next) => {
   //check if postid exist
   const postToLike = await Post.findOne({ _id: req.params.postId });
 
-  if (!postToLike) return res.status(404).json('Post not found');
+  if (postToLike.state === 'draft') return res.status(404).json('Post not found');
 
   //check the likepost collection to see if post has already been liked by the user
   let alreadyLikedPost = await LikePost.find();
@@ -171,8 +171,24 @@ exports.likePost = async (req, res, next) => {
 //edit post
 exports.editPost = async (req, res, next) => {
   try {
+    const post = await Post.findById(req.params.id)
+
+    if(!post) return res.status(404).json({
+      status: 'Fail',
+      message: 'Post not found'
+    })
+
+    if(String(post.author) !== String(req.user._id)){
+      return res.status(401).json({
+        status: 'Fail',
+        message: 'You can only edit a post created by you'
+      })
+    }
+
+
     //edit only body of post and no other property
-    if (!req.body.post) return res.status(400).json('You can only edit a post');
+    if (!req.body.post) return res.status(400).json('You can only edit the post body');
+    
     const postToEdit = await Post.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
@@ -189,12 +205,26 @@ exports.editPost = async (req, res, next) => {
 exports.updatePost = async (req, res, next) => {
   try {
     //1). find the post using the id
-    const post = await Post.findByIdAndUpdate(req.params.id, req.body, {
+    const post = await Post.findById(req.params.id)
+
+    if(!post) return res.status(404).json({
+      status: 'Fail',
+      message: 'Post not found'
+    })
+
+    if(String(post.author) !== String(req.user._id)){
+      return res.status(401).json({
+        status: 'Fail',
+        message: 'You can only update a post created by you'
+      })
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
     res.status(200).json({
       status: 'success',
-      data: post,
+      data: updatedPost,
     });
   } catch (err) {
     res.status(500).json(err);
