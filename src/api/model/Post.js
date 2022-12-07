@@ -1,17 +1,13 @@
 const mongoose = require('mongoose');
-// const User = require('../model/User')
+const User = require('../model/User')
 // const { Schema } = mongoose
 
 const postSchema = new mongoose.Schema(
   {
-    creatorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      // required: [true, 'A post must belong to a user']
+    author: {
+      type: mongoose.Schema.Types.ObjectId, ref: 'User', 
     },
-    createdBy: {
-      type: String,
-    },
+  
     post: {
       type: String,
       required: true,
@@ -29,7 +25,7 @@ const postSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    numOfReposts: {type: Number, default: 0},
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
