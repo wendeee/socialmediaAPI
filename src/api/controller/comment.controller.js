@@ -73,7 +73,7 @@ exports.likeComment = async (req, res, next) => {
 
     commentToLike.likes === 0 ? commentToLike.likes++ : commentToLike.likes++;
     commentToLike.save();
-    console.log(commentToLike);
+
   }
 
   res.status(200).json({
