@@ -64,7 +64,6 @@ exports.createNewPost = async (req, res, next) => {
       data: post,
     });
   } catch (err) {
-    console.log(err);
     return next(err);
   }
 };
