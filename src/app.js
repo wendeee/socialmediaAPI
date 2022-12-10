@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/', userRouter);
+app.use('/api', userRouter);
 app.use('/api/v1/users', authController.authenticate, userRouter);
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/posts', repostRouter);
