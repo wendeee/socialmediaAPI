@@ -18,8 +18,6 @@ exports.signup = async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  
-
   //implement jwt token before sending response
   // const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET, {
   //     expiresIn: process.env.JWT_EXPIRES_IN
@@ -35,7 +33,6 @@ exports.signup = async (req, res, next) => {
     token,
     data: {
       user: newUser,
-  
     },
   });
 };
@@ -44,14 +41,19 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     //check if user provided email and password
-    if (!email || !password)
+    if (!email || !password) {
+      res.status(401).json('Please provide email and password');
       return next(new Error('Please provide email and password'));
+    }
 
     //check if user exist in the database and compare passwords
     const user = await User.findOne({ email }).select('+password');
 
-    if (!user || !(await user.isValidPassword(password, user.password)))
+    if (!user || !(await user.isValidPassword(password, user.password))) {
+      res.json('Incorrect email or password');
       return next(new Error('Incorrect email or password'));
+    }
+    // return next(new Error('Incorrect email or password'));
 
     const token = signToken(user._id);
 
@@ -88,6 +90,14 @@ exports.authenticate = async (req, res, next) => {
       token,
       process.env.JWT_SECRET
     );
+    // const decodedPayload =  await promisify(jwt.verify)(token, process.env.JWT_SECRET, (err) => {
+    //   if(err){
+    //     err = {
+    //       name: 'TokenExpiredError',
+    //       message: 'jwt expired'
+    //     }
+    //   }
+    // })
 
     //check if user still exist using the token payload
     const currentUser = await User.findById(decodedPayload.id);
@@ -98,20 +108,21 @@ exports.authenticate = async (req, res, next) => {
     req.user = currentUser;
     next();
   } catch (err) {
-    throw err;
+    res.json(err)
+  
   }
 };
 
-exports.forgotPassword = async (req, res, next) => {
-  //1. Find user in Db using provided credential
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(404).json('User not found!');
+// exports.forgotPassword = async (req, res, next) => {
+//   //1. Find user in Db using provided credential
+//   const user = await User.findOne({ email: req.body.email });
+//   if (!user) return res.status(404).json('User not found!');
 
-  //2.Generate a random reset token
-  const resetToken = user.createPasswordResetToken();
-  await user.save({ validateBeforeSave: false }); //validatBeforeSave: false will turn off all validations before saving to db
+//   //2.Generate a random reset token
+//   const resetToken = user.createPasswordResetToken();
+//   await user.save({ validateBeforeSave: false }); //validatBeforeSave: false will turn off all validations before saving to db
 
-  //3.send token to the user's email
-};
+//   //3.send token to the user's email - backlog
+// };
 
 //exports.resetPassword
