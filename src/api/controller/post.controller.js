@@ -73,7 +73,6 @@ exports.getAllSharedPost = async (req, res, next) => {
   try {
     //find current user
     const currentUser = await User.findById({ _id: req.user._id });
-    console.log(currentUser)
 
     //get all post of current user
     const currentUserPosts = await Post.find({ author: req.user._id , state: 'shared'});
