@@ -22,7 +22,9 @@ app.use('/api/v1/posts', repostRouter);
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    message: 'This is the home page of LinkUp API. You can test out endpoints listed in the documentation.'
+    message:
+      'This is the home page of LinkUp API. You can test out endpoints listed in the documentation.',
+    docUrl: 'https://github.com/wendeee/socialmediaAPI#readme',
   });
 });
 module.exports = app;
