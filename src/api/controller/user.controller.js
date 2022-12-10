@@ -10,7 +10,6 @@
  */
 
 const User = require('../model/User');
-const { validationResult } = require('express-validator');
 
 //filter body function
 const filterObj = (obj, ...allowedFields) => {
@@ -46,23 +45,24 @@ exports.updateMe = async (req, res, next) => {
 
 //delete profile
 exports.deleteMe = async (req, res, next) => {
-  //1.) get userid from token
-  let userId = req.user._id;
-  //2.) findbyid and delete
-  let deletedUser = await User.findByIdAndDelete(userId);
-  res.json({
-    status: 'success',
-    deletedUser,
-  });
+  try {
+    //1.) get userid from token
+    let userId = req.user._id;
+    //2.) findbyid and delete
+    let deletedUser = await User.findByIdAndDelete(userId);
+    res.json({
+      status: 'success',
+      deletedUser,
+    });
+  } catch (err) {
+    res.json(err);
+  }
 };
-
-//get a user by id
-
-exports.getUser = async (req, res, next) => {};
 
 //follow a user on the platform
 exports.follow = async (req, res, next) => {
-  const currentUserId = req.user._id;
+  try{
+    const currentUserId = req.user._id;
   const userToFollowId = req.params.tofollowId;
   const currentUser = await User.findById(currentUserId);
 
@@ -90,62 +90,79 @@ exports.follow = async (req, res, next) => {
   } else {
     return res.status(400).json('You cannot follow yourself');
   }
+  }catch(err){
+    res.json(err)
+  }
+  
 };
 
 //unfollow a user on the platform
 exports.unfollow = async (req, res, next) => {
-  const currentUserId = req.user._id;
-  const userToUnfollowId = req.params.unfollowid
-  const currentUser = await User.findById(currentUserId)
-  const userToUnfollow = await User.findById(userToUnfollowId)
-  if(userToUnfollowId !== currentUserId.toString()){
-    if(currentUser.followings.includes(userToUnfollowId)){
-      currentUser.followings.pull(userToUnfollowId)
-      await currentUser.updateOne({
-        followings: currentUser.followings
-      })
-      userToUnfollow.followers.pull(currentUserId)
-      await userToUnfollow.updateOne({
-        followers: userToUnfollow.followers
-      })
-      res.status(200).json(`${userToUnfollow.username} unfollowed successfully!`)
+  try {
+    const currentUserId = req.user._id;
+    const userToUnfollowId = req.params.unfollowid;
+    const currentUser = await User.findById(currentUserId);
+    const userToUnfollow = await User.findById(userToUnfollowId);
+    if (userToUnfollowId !== currentUserId.toString()) {
+      if (currentUser.followings.includes(userToUnfollowId)) {
+        currentUser.followings.pull(userToUnfollowId);
+        await currentUser.updateOne({
+          followings: currentUser.followings,
+        });
+        userToUnfollow.followers.pull(currentUserId);
+        await userToUnfollow.updateOne({
+          followers: userToUnfollow.followers,
+        });
+        res.status(200).json({
+          status: 'success',
+          message: `${userToUnfollow.username} unfollowed successfully!`,
+        });
+      }
+    } else {
+      res.status(400).json('You cannot unfollow yourself');
     }
-  }else{
-    res.status(400).json('You cannot unfollow yourself')
+  } catch (err) {
+    req.json(err);
   }
-
 };
 
 //get followers
 exports.getFollowers = async (req, res, next) => {
-  const currentUser = await User.findOne({_id: req.user._id}).populate('followers', 'firstname lastname')
-  let followers = currentUser.followers
-  if(followers.length === 0){
-    followers = currentUser.followers
-  }else{
-    followers = currentUser.followers
+  try{
+    const currentUser = await User.findOne({ _id: req.user._id }).populate(
+      'followers',
+      'firstname lastname'
+    );
+    let followers = currentUser.followers;
+    if (followers.length === 0) {
+      followers = currentUser.followers;
+    } else {
+      followers = currentUser.followers;
+    }
+    res.json({
+      followers: followers,
+    });
+  }catch(err){
+    res.json(err)
   }
- res.json({
-  followers: followers
- })
- 
+  
 };
 
 //get followings
 exports.getFollowings = async (req, res, next) => {
-  const currentUser = await User.findOne({_id: req.user._id}).populate('followings', '-_id firstname lastname')
-  let followings = currentUser.followings
+  try{
+    const currentUser = await User.findOne({ _id: req.user._id }).populate(
+      'followings',
+      '-_id firstname lastname'
+    );
+    let followings = currentUser.followings;
   
-  res.json({
-    numOfFollowings: followings.length,
-    followings: followings
-  })
-  
-};
-
-//lookup followers bio
-exports.getUser = async(req, res, next)=> {
-  
+    res.json({
+      numOfFollowings: followings.length,
+      followings: followings,
+    });
+  }catch(err){
+    res.json(err)
+  }
 }
-
 
