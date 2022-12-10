@@ -47,8 +47,6 @@ const userSchema = new mongoose.Schema(
         message: 'Passwords do not match',
       },
     },
-    passwordResetToken: String,
-    passwordResetExpire: Date,
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followerCount: Number,
