@@ -23,7 +23,7 @@ LinkUp is a backend API for a social media platform built by <a href="https://gi
     <a href="https://github.com/wendeee/socialmediaAPI#readme"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="#">View Demo</a>
+    <a href="https://linkup.cyclic.app">View Demo</a>
   </p>
 </div>
 
@@ -168,7 +168,7 @@ npm run start:dev
 
 ### Base URL
 
-- https://.....
+- https://linkup.cyclic.app
 
 ### USERS
 
