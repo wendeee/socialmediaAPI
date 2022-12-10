@@ -20,6 +20,9 @@ app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/posts', repostRouter);
 
 app.get('/', (req, res) => {
-  res.json('Welcome to the Home Page');
+  res.json({
+    status: 'success',
+    message: 'This is the home page of LinkUp API. You can test out endpoints listed in the documentation.'
+  });
 });
 module.exports = app;
