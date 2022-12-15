@@ -1,8 +1,12 @@
-const express = require('express')
+const express = require('express');
 
-const router = express.Router()
-const repostController = require('./../controller/repost.controller')
-const authController = require('./../controller/user.auth')
+const router = express.Router();
+const repostController = require('./../controller/repost.controller');
+const authController = require('./../controller/user.auth');
 
-router.post('/:id/repost', authController.authenticate, repostController.rePostAPost)
+router.post(
+  '/:id/repost',
+  authController.authenticate,
+  repostController.rePostAPost
+);
 module.exports = router;
