@@ -1,9 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
 const userRouter = require('./api/routes/user.routes');
-const authController = require('./api/controller/user.auth');
+const userAuthRouter = require('./api/routes/user.auth.route');
+// const authController = require('./api/controller/user.auth');
 const postRouter = require('./api/routes/post.routes');
 const repostRouter = require('./api/routes/repost.routes');
+const globalErrorCatch = require('./api/utils/globalErrorCatch');
 const app = express();
 require('dotenv').config();
 
@@ -14,8 +16,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api', userRouter);
-app.use('/api/v1/users', authController.authenticate, userRouter);
+app.use('/api/auth', userAuthRouter);
+app.use('/api/v1/users', userRouter);
 app.use('/api/v1/posts', postRouter);
 app.use('/api/v1/posts', repostRouter);
 
@@ -27,4 +29,15 @@ app.get('/', (req, res) => {
     docUrl: 'https://github.com/wendeee/socialmediaAPI#readme',
   });
 });
+
+//Error handler to catch non-registered route
+app.use('*', (req, res, next) => {
+  const err = new Error(`${req.originalUrl} not found!`);
+  err.status = 'Failed';
+  err.statusCode = 404;
+  next(err);
+});
+
+//global error handler
+app.use(globalErrorCatch);
 module.exports = app;
