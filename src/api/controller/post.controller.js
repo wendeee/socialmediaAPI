@@ -24,9 +24,6 @@ const moment = require('moment');
 
 //create a post
 exports.createNewPost = async (req, res, next) => {
-  // let post;
-  const newPost = req.body;
-
   try {
     let post;
     if (req.file) {
@@ -37,14 +34,14 @@ exports.createNewPost = async (req, res, next) => {
         author: req.user._id,
         image: result.secure_url,
         timestamps: moment().toDate(),
-        ...newPost,
+        post: req.body.post,
       });
     } else {
       //create an instance of the Post model object
       post = new Post({
         author: req.user._id,
         timestamps: moment().toDate(),
-        ...newPost,
+        post: req.body.post,
       });
     }
 
@@ -75,13 +72,18 @@ exports.getAllSharedPost = async (req, res, next) => {
     const currentUser = await User.findById({ _id: req.user._id });
 
     //get all post of current user
-    const currentUserPosts = await Post.find({ author: req.user._id , state: 'shared'});
+    const currentUserPosts = await Post.find({
+      author: req.user._id,
+      state: 'shared',
+    });
 
     //get posts of current user followings
-    const followingsPosts = await Promise.all(currentUser.followings.map((followingId) =>
-      Post.find({ author: followingId , state: 'shared'})
-    ));
-    const posts = currentUserPosts.concat(...followingsPosts)
+    const followingsPosts = await Promise.all(
+      currentUser.followings.map((followingId) =>
+        Post.find({ author: followingId, state: 'shared' })
+      )
+    );
+    const posts = currentUserPosts.concat(...followingsPosts);
 
     res.status(200).json({
       status: 'success',
@@ -135,64 +137,63 @@ exports.getPost = async (req, res, next) => {
 
 //like or unlike a post
 exports.likePost = async (req, res, next) => {
-  try{
-     //check if postid exist
-  const postToLike = await Post.findOne({ _id: req.params.postId });
+  try {
+    //check if postid exist
+    const postToLike = await Post.findOne({ _id: req.params.postId });
 
-  if (postToLike.state === 'draft')
-    return res.status(404).json('Post not found');
+    if (postToLike.state === 'draft')
+      return res.status(404).json('Post not found');
 
-  //check the likepost collection to see if post has already been liked by the user
-  let alreadyLikedPost = await LikePost.find();
-  alreadyLikedPost = alreadyLikedPost.filter(
-    (el) =>
-      String(el._user) == String(req.user._id) &&
-      String(el._post) === String(req.params.postId)
-  );
+    //check the likepost collection to see if post has already been liked by the user
+    let alreadyLikedPost = await LikePost.find();
+    alreadyLikedPost = alreadyLikedPost.filter(
+      (el) =>
+        String(el._user) == String(req.user._id) &&
+        String(el._post) === String(req.params.postId)
+    );
 
-  //if the alreadylikedpost array is not empty,
-  //the post has already been liked,
-  //then unlike post
-  if (alreadyLikedPost.length !== 0) {
-    alreadyLikedPost = alreadyLikedPost.splice(0, 1);
+    //if the alreadylikedpost array is not empty,
+    //the post has already been liked,
+    //then unlike post
+    if (alreadyLikedPost.length !== 0) {
+      alreadyLikedPost = alreadyLikedPost.splice(0, 1);
 
-    //delete obj from likepost collection
-    await LikePost.findByIdAndDelete(alreadyLikedPost[0].id);
+      //delete obj from likepost collection
+      await LikePost.findByIdAndDelete(alreadyLikedPost[0].id);
 
-    //update likes count and save
-    postToLike.likes = postToLike.likes - 1;
-    postToLike.save();
+      //update likes count and save
+      postToLike.likes = postToLike.likes - 1;
+      postToLike.save();
 
-    return res.status(200).json({
-      message: 'You unliked this post',
-      postToLike,
+      return res.status(200).json({
+        message: 'You unliked this post',
+        postToLike,
+      });
+    } else {
+      //update likepost model
+      let likepost = new LikePost({
+        _user: req.user._id,
+        _post: req.params.postId,
+      });
+
+      likepost.save((err) => {
+        if (err) return next(err.message);
+      });
+
+      //update the number of likes
+      postToLike.likes === 0 ? postToLike.likes++ : postToLike.likes++;
+      postToLike.save();
+    }
+
+    //send back response
+    res.status(200).json({
+      status: 'success',
+      message: 'You liked this post',
+      post: postToLike,
     });
-  } else {
-    //update likepost model
-    let likepost = new LikePost({
-      _user: req.user._id,
-      _post: req.params.postId,
-    });
-
-    likepost.save((err) => {
-      if (err) return next(err.message);
-    });
-
-    //update the number of likes
-    postToLike.likes === 0 ? postToLike.likes++ : postToLike.likes++;
-    postToLike.save();
+  } catch (err) {
+    res.json(err);
   }
-
-  //send back response
-  res.status(200).json({
-    status: 'success',
-    message: 'You liked this post',
-    post: postToLike,
-  });
-  }catch(err){
-    res.json(err)
-  }
- 
 };
 
 //edit post
@@ -262,21 +263,20 @@ exports.updatePost = async (req, res, next) => {
 
 //delete post
 exports.deletePost = async (req, res, next) => {
-  try{
-    const post = await Post.findById(req.params.id)
+  try {
+    const post = await Post.findById(req.params.id);
     //delete post from user's 'posts' array in user model
     const postByUser = await User.findById(req.user._id);
     postByUser.posts.pull(post._id);
     await postByUser.updateOne({ posts: postByUser.posts });
-   // user.posts
-   await Post.findByIdAndRemove(req.params.id);
- 
-   res.status(200).json({
-     status: 'success',
-     message: 'post deleted sucessfully',
-   });
-  }catch(err){
-    return next(err)
+    // user.posts
+    await Post.findByIdAndRemove(req.params.id);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'post deleted sucessfully',
+    });
+  } catch (err) {
+    return next(err);
   }
- 
 };
