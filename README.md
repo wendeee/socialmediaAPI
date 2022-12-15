@@ -94,7 +94,13 @@ npm install
 
 ### Update .env with [example.env](https://github.com/wendeee/socialMediaAPI/blob/main/example.env)
 
-* Sign up on Cloudinary to get API_KEY for free and other details needed in the .env file
+* Sign up on Cloudinary to get API_KEY for free and other details needed in your .env file
+* To implement forgot password and reset password functionality, I used Nodemailer and mail trap to send reset token to user's email.<br>
+Sign up on [mailtrap](https://mailtrap.io/) for free to get the following details👇:
+    - EMAIL_USERNAME
+    - EMAIL_PASSWORD
+    - EMAIL_HOST
+    - EMAIL_PORT
 
 ### Run development server
 
@@ -174,7 +180,7 @@ npm run start:dev
 
 ### Register/Sign up a user
 
-- Route:  /api/signup
+- Route:  /api/auth/signup
 - method: POST
 
 - 👇: Body
@@ -216,7 +222,7 @@ npm run start:dev
 ```
 #### Login/Sign in a user
 
-Route:  /api/login
+Route:  /api/auth/login
 method: POST
 
  👇: Body
@@ -232,6 +238,44 @@ method: POST
 
 ```json
 
+{
+    "status": "success",
+    "token": {token}
+}
+```
+
+#### Forgot Password
+- Route: /api/auth/forgotPassword
+- Method: POST
+
+👇: Body
+```json
+{
+    "email": "jackson@gmail.com"
+}
+```
+👇: Response
+
+```json
+{
+    "status": "success",
+    "message": "A reset token has been sent to your email"
+}
+```
+
+#### Reset Password
+- Route: /api/auth/resetPassword/:token
+- Method: PATCH
+
+👇: Body
+```json
+{
+    "password": "jacksonnewpassword",
+    "passwordConfirm": "jacksonnewpassword"
+}
+```
+👇: Response
+```json
 {
     "status": "success",
     "token": {token}
