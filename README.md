@@ -600,11 +600,13 @@ method: POST
 ## Lessons I learned while working on this: 
 
 - How to model data
+- Mongoose Database Schema Design
 - User authentication authorization with JWT
 - Database Query
 - User Authentication
 - How to craft a presentable README.md
 - How to upload image using multer and cloudinary
+- How to implement forgot password and reset password using Nodemailer
 
 <!-- CONTACT -->
 ## Contact
