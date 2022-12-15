@@ -2,7 +2,7 @@ const app = require('./app');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const DB = process.env.DATABASE_ATLAS;
+const DB = process.env.DATABASE_LOCAL;
 
 const DB_CONNECTION = async () => {
   try {
