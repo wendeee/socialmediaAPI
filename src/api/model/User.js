@@ -51,12 +51,14 @@ const userSchema = new mongoose.Schema(
     followings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followerCount: Number,
     followingCount: Number,
+    passwordResetToken: {type: String, required:false},
+    passwordResetExpire: {type: Date, required: false},
     joinedOn: {
       type: Date,
       default: Date.now(),
       immutable: true,
     },
-    posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}]
+    posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
   },
   { timestamps: true }
 );
@@ -81,21 +83,23 @@ userSchema.methods.isValidPassword = async function (
   return await bcrypt.compare(currentPassword, storedUserPassword);
 };
 
-userSchema.methods.createPasswordResetToken = function () {
+//generate token for password reset
+userSchema.methods.generatePasswordResetToken = function () {
   //create a reset token
-  const resetToken = crypto.randomBytes(32).toString('hex');   //unencrypted reset token
+  const resetToken = crypto.randomBytes(32).toString('hex'); //unencrypted reset token
 
-  //encrypt token before saving to db
+  //encrypt resettoken before saving to db
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
   //reset password token expiration time is 10mins
-  console.log({resetToken}, this.passwordResetToken)
+  // console.log({ resetToken }, this.passwordResetToken);
   this.passwordResetExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
-// module.exports = mongoose.model('User', userSchema)
+
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
