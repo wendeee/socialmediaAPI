@@ -19,11 +19,11 @@ exports.rePostAPost = async (req, res, next) => {
   };
 
   const post = await getPost();
-  if(post.state === 'draft'){
+  if (post.state === 'draft') {
     return res.status(403).json({
       status: 'Fail',
-      message: 'You cannot repost a post in draft state'
-    })
+      message: 'You cannot repost a post in draft state',
+    });
   }
 
   //3. check if post has already been reposted
@@ -36,12 +36,13 @@ exports.rePostAPost = async (req, res, next) => {
 
   //4. function to check for userid in _user array
   const userInArray = async () => {
-    let isUser = await RePost.find()
-    isUser = isUser.filter(doc => {return doc._user.includes(user._id)})
+    let isUser = await RePost.find();
+    isUser = isUser.filter((doc) => {
+      return doc._user.includes(user._id);
+    });
     return !isUser ? 'Not found' : isUser;
   };
 
- 
   if (repost.length < 1) {
     //5. create new repost document
     const newRepost = new RePost({
@@ -56,16 +57,15 @@ exports.rePostAPost = async (req, res, next) => {
     res.status(200).json({
       status: 'success',
       message: 'You reposted this post',
-      post
-    })
+      post,
+    });
   } else {
     //7. check for user in _user Array
     const isUser = await userInArray();
     if (isUser.length > 0) {
-  
       res.status(403).json({
         status: 'Fail',
-        message: 'You already reposted this post'
+        message: 'You already reposted this post',
       });
     } else {
       //8. add userId to the _user array
@@ -78,10 +78,8 @@ exports.rePostAPost = async (req, res, next) => {
       res.status(200).json({
         status: 'success',
         message: 'You reposted this post',
-        post
-      })
+        post,
+      });
     }
   }
- 
 };
-
