@@ -127,7 +127,7 @@ exports.forgotPassword = async (req, res, next) => {
   //3.create reset link and send token to the user's email using sgMail
   const resetURL = `${req.protocol}://${req.get(
     'host'
-  )}/api/resetPassword/${resetToken}`;
+  )}/api/auth/resetPassword/${resetToken}`;
 
   const message = `Hello ${user.username},\n 
   A request has been received to change your password for your LinkUp account.\n
