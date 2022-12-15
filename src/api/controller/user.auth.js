@@ -11,21 +11,17 @@ const signToken = (id) => {
 };
 
 exports.signup = async (req, res, next) => {
-  const newUser = await User.create({
-    firstname: req.body.firstname,
-    lastname: req.body.lastname,
-    username: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
+  try{
+    const newUser = await User.create({
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+    });
 
-  //implement jwt token before sending response
-  // const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET, {
-  //     expiresIn: process.env.JWT_EXPIRES_IN
-  // })
-
-  const token = signToken(newUser._id);
+    const token = signToken(newUser._id);
 
   //hide password before returning user's details
   newUser.password = undefined;
@@ -37,6 +33,17 @@ exports.signup = async (req, res, next) => {
       user: newUser,
     },
   });
+  }catch(err){
+    if(err) return next(new Error('An error occurred while signing up.'))
+  }
+  
+
+  //implement jwt token before sending response
+  // const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET, {
+  //     expiresIn: process.env.JWT_EXPIRES_IN
+  // })
+
+  
 };
 
 exports.login = async (req, res, next) => {
@@ -124,7 +131,7 @@ exports.forgotPassword = async (req, res, next) => {
   const resetToken = await user.generatePasswordResetToken();
   await user.save({ validateBeforeSave: false }); //validatBeforeSave: false will turn off all validations before saving user obj to db
 
-  //3.create reset link and send token to the user's email using sgMail
+  //3.create reset url and send token to the user's email
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/auth/resetPassword/${resetToken}`;
