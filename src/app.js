@@ -1,8 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
+const helmet = require('helmet');
 const userRouter = require('./api/routes/user.routes');
 const userAuthRouter = require('./api/routes/user.auth.route');
-// const authController = require('./api/controller/user.auth');
 const postRouter = require('./api/routes/post.routes');
 const repostRouter = require('./api/routes/repost.routes');
 const globalErrorCatch = require('./api/utils/globalErrorCatch');
@@ -15,6 +15,9 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//security middleware
+app.use(helmet());
 
 app.use('/api/auth', userAuthRouter);
 app.use('/api/v1/users', userRouter);
