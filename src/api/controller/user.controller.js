@@ -26,7 +26,11 @@ exports.updateMe = async (req, res, next) => {
   let userId = req.user._id;
   try {
     if (req.body.password || req.body.passwordConfirm) {
-      return next(res.json('This route is not for updating password,'));
+      return res.status(400).json({
+        status: 'Fail',
+        message: 'This route is not for updating password,',
+        passwordResetUrl: `${req.protocol}://${req.get('host')}/api/auth/forgotPassword`
+      });
     }
     const reqBody = filterObj(req.body, 'username', 'email');
     let updatedUser = await User.findByIdAndUpdate(userId, reqBody, {
@@ -122,7 +126,7 @@ exports.unfollow = async (req, res, next) => {
       res.status(400).json('You cannot unfollow yourself');
     }
   } catch (err) {
-    req.json(err);
+    res.json(err);
   }
 };
 
