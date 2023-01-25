@@ -1,6 +1,9 @@
 const express = require('express');
-const morgan = require('morgan');
 const helmet = require('helmet');
+const { rateLimit } = require('express-rate-limit');
+const cors = require('cors');
+const logger = require('./api/logger/logger');
+const httpLogger = require('./api/logger/httpLogger');
 const userRouter = require('./api/routes/user.routes');
 const userAuthRouter = require('./api/routes/user.auth.route');
 const postRouter = require('./api/routes/post.routes');
@@ -10,14 +13,27 @@ const app = express();
 require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+  app.use(httpLogger);
 }
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//configure rate limit obj
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 //security middleware
 app.use(helmet());
+
+//use rate limit
+app.use(limiter);
+
+app.use(cors());
 
 app.use('/api/auth', userAuthRouter);
 app.use('/api/v1/users', userRouter);
