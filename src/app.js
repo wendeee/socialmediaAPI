@@ -1,5 +1,5 @@
 const express = require('express');
-const helmet = require('helmet');
+// const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
 const logger = require('./api/logger/logger');
@@ -28,7 +28,7 @@ const limiter = rateLimit({
 });
 
 //security middleware
-app.use(helmet());
+// app.use(helmet());
 
 //use rate limit
 app.use(limiter);
